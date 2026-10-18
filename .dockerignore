@@ -1,0 +1,17 @@
+# 构建上下文只保留源码与构建清单，其余一律排除
+.git
+.gitignore
+.github
+node_modules
+**/node_modules
+dist
+**/dist
+assets
+coverage
+**/coverage
+.vscode
+.idea
+*.log
+Dockerfile
+docker/docker-compose.yml
+docker/README.md

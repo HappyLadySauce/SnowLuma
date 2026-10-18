@@ -1,0 +1,51 @@
+# SnowLuma + NTQQ(无头) 一体化部署
+# 用法: cd docker && docker compose up -d --build
+name: snowluma
+
+services:
+  snowluma:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      # 本机构建容器无法直连外网（docker0 被防火墙拦截），走宿主机网络栈；
+      # 普通网络环境可删除 network 行并还原默认源（npmjs / deb.debian.org）
+      network: host
+      args:
+        NPM_REGISTRY: https://registry.npmmirror.com
+        APT_MIRROR: mirrors.ustc.edu.cn
+    image: snowluma-ntqq:latest
+    container_name: snowluma
+    restart: unless-stopped
+    # 共享宿主机网络栈: 容器出站流量随宿主机策略出网（QQ 需要），且
+    # WebUI 5099 / noVNC 5901 / OneBot 配置的端口直接在宿主机监听，无需映射。
+    # 若宿主机防火墙未拦截 docker 网桥出站，也可改回普通 bridge + ports 映射。
+    network_mode: host
+    # SnowLuma 通过 ptrace 类原生注入接入 QQ 进程，必须放开 ptrace 限制
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      # 首次启动视为已阅读并同意 EULA / 隐私政策（跳过 WebUI 同意页）
+      SNOWLUMA_ACCEPT_EULA: "1"
+      SNOWLUMA_ACCEPT_PRIVACY: "1"
+      # 可选: 指定 WebUI 初始密码（>=8 位）；不设则从容器日志取随机初始密码
+      # SNOWLUMA_WEBUI_BOOTSTRAP_PASSWORD: "change-me-please"
+      TZ: Asia/Shanghai
+    volumes:
+      # SnowLuma 配置 / 日志 / 账号数据
+      - snowluma-data:/app/data
+      # QQ 登录态与本地数据
+      - qq-data:/home/node/.config/QQ
+    # QQ(Electron) 内存占用较高，按需调整
+    mem_limit: 1500m
+    pids_limit: 1024
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+
+volumes:
+  snowluma-data:
+  qq-data:
