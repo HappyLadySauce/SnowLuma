@@ -1,4 +1,4 @@
-import { Bug, Check, Eye, EyeOff, GripVertical, LayoutDashboard, Lock, Pin, PinOff, PlugZap, Settings, Sparkles, SlidersHorizontal, Terminal } from 'lucide-react';
+import { Bug, Check, Eye, EyeOff, GripVertical, LayoutDashboard, Lock, Pin, PinOff, PlugZap, QrCode, Settings, Sparkles, SlidersHorizontal, Terminal } from 'lucide-react';
 import { motion, Reorder, useDragControls } from 'motion/react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +21,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: '总览', icon: LayoutDashboard, description: '主机与服务状态' },
   { to: '/processes', label: '进程注入', icon: PlugZap, description: '加载 / 卸载 / 登录' },
+  { to: '/qq-login', label: 'QQ 登录', icon: QrCode, description: '扫码登录与多实例' },
   { to: '/config', label: '节点配置', icon: Settings, description: 'OneBot 协议端点' },
   { to: '/logs', label: '日志', icon: Terminal, description: '实时事件流' },
   { to: '/debug', label: '调试', icon: Bug, description: '测试台与实时活动' },

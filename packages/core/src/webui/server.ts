@@ -91,6 +91,7 @@ import { loadNotificationsConfig, saveNotificationsConfig } from '../notificatio
 import type { NotificationManager } from '../notifications/manager';
 import { StorageManagementService } from './storage-management';
 import { registerStorageRoutes } from './storage-routes';
+import { registerQqScreenRoutes } from './qq-screen';
 import { LogStorageSettingsManager } from './storage-settings';
 import {
   clearAvatarSessionCookie,
@@ -1507,6 +1508,9 @@ export async function initWebUI(
       return c.json({ info: null, message: '探测失败' }, 500);
     }
   });
+
+  // QQ 登录面板：虚拟屏幕截图（扫码）/ 重启登录窗口 / HOME 隔离多开。
+  registerQqScreenRoutes(app, { hookManager: hookManager ?? null });
 
   app.get('/api/config/:uin', (c) => {
     const uin = c.req.param('uin');

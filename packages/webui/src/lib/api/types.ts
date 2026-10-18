@@ -94,6 +94,13 @@ export type ProcessActionResult = {
   process?: HookProcessInfo & { error?: string };
 };
 
+// ---- QQ login panel (headless screen capture / instance management) ----
+// Shared shapes live in '@/types'; re-exported here so API consumers import
+// from a single module.
+import type { QqInstance, QqLaunchResult, QqRelaunchResult, QqRemoveResult, ScreenCapability } from '@/types';
+
+export type { QqInstance, ScreenCapability, QqRelaunchResult, QqLaunchResult, QqRemoveResult };
+
 export interface ConfigApplyError {
   name: string;
   kind?: 'httpServer' | 'httpClient' | 'wsServer' | 'wsClient';
@@ -179,6 +186,22 @@ export interface ApiClient {
     unload(pid: number): Promise<ProcessActionResult>;
     refresh(pid: number): Promise<ProcessActionResult>;
     probeLoginInfo(pid: number, signal?: AbortSignal): Promise<unknown>;
+  };
+
+  // ---- QQ login panel (headless screen capture / instance management) ----
+  qqLogin: {
+    /** Live PNG of the given instance's Xvfb screen, as an object URL. */
+    screen(objectUrlTarget: { url: string | null }, display: number | null, signal?: AbortSignal): Promise<string>;
+    /** Whether the server can capture the screen (xwd/netpbm installed). */
+    screenCapable(): Promise<ScreenCapability>;
+    /** Restart QQ processes that are not logged in yet → fresh QR. */
+    relaunch(): Promise<QqRelaunchResult>;
+    /** Launch an additional HOME-isolated QQ instance. */
+    launch(): Promise<QqLaunchResult>;
+    /** All live QQ main processes merged with hook status. */
+    instances(): Promise<QqInstance[]>;
+    /** Terminate an isolated instance and delete its data dir. */
+    removeInstance(pid: number): Promise<QqRemoveResult>;
   };
 
   // ---- OneBotInstance per-UIN config ----

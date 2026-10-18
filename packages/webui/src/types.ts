@@ -27,6 +27,53 @@ export interface QQInfo {
   nickname: string;
 }
 
+// ---- QQ login panel (headless screen capture / instance management) ----
+
+export interface QqInstance {
+  pid: number;
+  /** Instance data dir (HOME override); null for the default instance. */
+  dataDir: string | null;
+  source: 'default' | 'isolated';
+  /** X display number this instance renders on (e.g. 99, 100). */
+  display: number | null;
+  /** noVNC web port for this instance's screen (password login fallback). */
+  noVncPort: number | null;
+  injected: boolean;
+  loggedIn: boolean;
+  status: string;
+  uin: string;
+}
+
+export interface ScreenCapability {
+  capable: boolean;
+  xwd: boolean;
+  netpbm: boolean;
+  display: string;
+  defaultNoVncPort: number;
+}
+
+export type QqRelaunchResult = {
+  success: boolean;
+  terminated: number[];
+  message?: string;
+};
+
+export type QqLaunchResult = {
+  success: boolean;
+  pid?: number;
+  dataDir?: string;
+  display?: number;
+  noVncPort?: number;
+  message?: string;
+};
+
+export type QqRemoveResult = {
+  success: boolean;
+  pid: number;
+  dataDir?: string;
+  message?: string;
+};
+
 export type AdapterStatusLevel = 'ok' | 'warn' | 'down' | 'disabled' | 'degraded';
 
 export interface AdapterStatus {

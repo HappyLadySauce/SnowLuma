@@ -10,6 +10,11 @@ import {
   type LoginResult,
   type LogsStreamOptions,
   type ProcessActionResult,
+  type QqInstance,
+  type QqLaunchResult,
+  type QqRelaunchResult,
+  type QqRemoveResult,
+  type ScreenCapability,
   type StateStreamEvent,
   type StateStreamOptions,
   type StreamStatus,
@@ -64,6 +69,7 @@ class HttpApiClient implements ApiClient {
   readonly debug: ApiClient['debug'];
   readonly agreements: ApiClient['agreements'];
   readonly totp: ApiClient['totp'];
+  readonly qqLogin: ApiClient['qqLogin'];
 
   constructor(opts: CreateApiClientOptions = {}) {
     this.tokenStore = opts.tokenStore ?? localStorageTokenStore(DEFAULT_TOKEN_KEY);
@@ -79,6 +85,38 @@ class HttpApiClient implements ApiClient {
         `/api/processes/${pid}/probe-login`,
         { signal },
       ).then((d) => d.info ?? null),
+    };
+
+    this.qqLogin = {
+      // 截图接口受 Bearer 鉴权保护，<img src> 带不了 token，因此以 fetch
+      // 取回 blob 并转 object URL；调用方负责 revoke（screen() 每次会先
+      // revoke 传入 target 里上一帧的 URL，保证轮询期间不泄漏）。
+      // display 指定实例屏幕（null = 默认显示器 :99），实现卡片切换取景。
+      screen: async (objectUrlTarget, display, signal) => {
+        const query = display != null ? `?display=${display}` : '';
+        const res = await this.request(`/api/qq/login-screen${query}`, { signal });
+        if (!res.ok) {
+          const payload = await readJson<ErrorPayload>(res);
+          throw new ApiError(res.status, extractErrorMessage(payload, res.statusText || '截图失败'), payload.code);
+        }
+        const blob = await res.blob();
+        const next = URL.createObjectURL(blob);
+        if (objectUrlTarget.url) URL.revokeObjectURL(objectUrlTarget.url);
+        objectUrlTarget.url = next;
+        return next;
+      },
+      screenCapable: () => this.getJson<ScreenCapability>('/api/qq/screen-capable'),
+      relaunch: () => this.postJson<QqRelaunchResult>('/api/qq/relaunch'),
+      launch: () => this.postJson<QqLaunchResult>('/api/qq/launch'),
+      instances: () => this.getJson<{ instances: QqInstance[] }>('/api/qq/instances').then((d) => d.instances ?? []),
+      removeInstance: async (pid) => {
+        const res = await this.request(`/api/qq/instances/${pid}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const payload = await readJson<ErrorPayload>(res);
+          throw new ApiError(res.status, extractErrorMessage(payload, res.statusText || '删除失败'), payload.code);
+        }
+        return readJson<QqRemoveResult>(res);
+      },
     };
 
     this.config = {

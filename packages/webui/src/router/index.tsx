@@ -46,6 +46,15 @@ const processesRoute = createRoute({
   ),
 });
 
+const qqLoginRoute = createRoute({
+  path: '/qq-login',
+  getParentRoute: () => appLayoutRoute,
+  component: lazyRouteComponent(
+    () => import('@/components/pages/qq-login-page'),
+    'QqLoginPage',
+  ),
+});
+
 const configRoute = createRoute({
   path: '/config',
   getParentRoute: () => appLayoutRoute,
@@ -95,7 +104,7 @@ export const settingsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  appLayoutRoute.addChildren([overviewRoute, processesRoute, configRoute, logsRoute, debugRoute, settingsRoute]),
+  appLayoutRoute.addChildren([overviewRoute, processesRoute, qqLoginRoute, configRoute, logsRoute, debugRoute, settingsRoute]),
 ]);
 
 export const appRouter = createRouter({
@@ -112,4 +121,4 @@ declare module '@tanstack/react-router' {
 }
 
 /** Paths registered on the layout — single source of truth for nav metadata. */
-export type AppPath = '/' | '/processes' | '/config' | '/logs' | '/debug' | '/settings';
+export type AppPath = '/' | '/processes' | '/qq-login' | '/config' | '/logs' | '/debug' | '/settings';
